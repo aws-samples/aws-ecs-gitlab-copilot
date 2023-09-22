@@ -51,8 +51,11 @@ env-deploy:
   resource_group: "$CI_COMMIT_REF_SLUG/$COPILOT_SERVICE"
   script:
     - sh -x ./gitlab/app-deploy.sh
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+    url: https://$COPILOT_SERVICE.$CI_ENVIRONMENT_SLUG.$AWS_REGION.example.com
 
-deploy-service-a:
+deploy_service-a:
   extends: .app-deploy
   only:
     changes:
@@ -60,7 +63,7 @@ deploy-service-a:
   variables:
     COPILOT_SERVICE: service-a
 
-deploy-service-b:
+deploy_service-b:
   extends: .app-deploy
   only:
     changes:
