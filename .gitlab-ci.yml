@@ -15,8 +15,6 @@ env-init:
       - branches
   environment:
     name: $CI_COMMIT_REF_SLUG
-    on_stop: stop-env
-    auto_stop_in: 1 week
   script:
     - ls -laR
     - sh -x ./gitlab/env-init.sh
@@ -54,8 +52,6 @@ env-deploy:
   environment:
     name: $CI_COMMIT_REF_SLUG-$COPILOT_SERVICE
     url: https://$COPILOT_SERVICE.$CI_ENVIRONMENT_SLUG.$AWS_REGION.example.com
-    on_stop: stop-env
-    auto_stop_in: 1 week
 
 deploy_service-a:
   extends: .app-deploy
@@ -72,13 +68,3 @@ deploy_service-b:
       - service-b/**
   variables:
     COPILOT_SERVICE: service-b
-
-stop-env:
-  image: $BUILD_IMAGE
-  stage: env-init
-  when: manual
-  environment:
-    name: $CI_COMMIT_REF_SLUG
-    action: stop
-  script:
-    - sh -x ./gitlab/env-stop.sh
