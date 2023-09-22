@@ -1,0 +1,79 @@
+stages:
+  - env-init
+  - env-deploy
+  - app-deploy
+
+variables:
+  BUILD_IMAGE: registry.gitlab.com/wlami/aws-copilot-with-gitlab-2/copilot-cli
+
+env-init:
+  image: $BUILD_IMAGE
+  stage: env-init
+  resource_group: "$CI_COMMIT_REF_SLUG"
+  only:
+    refs:
+      - branches
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+    on_stop: stop-env
+    action: prepare
+  script:
+    - ls -laR
+    - sh -x ./gitlab/env-init.sh
+  artifacts:
+    untracked: false
+    when: on_success
+    expire_in: "30 days"
+    paths:
+      - copilot/environments/$CI_COMMIT_REF_SLUG
+
+env-deploy:
+  image: $BUILD_IMAGE
+  stage: env-deploy
+  resource_group: "$CI_COMMIT_REF_SLUG"
+  dependencies:
+    - env-init
+  only:
+    refs:
+      - branches
+  script:
+    - sh -x ./gitlab/env-deploy.sh
+
+
+.app-deploy:
+  stage: app-deploy
+  image: $BUILD_IMAGE
+  only:
+    refs:
+      - branches
+  before_script:
+    - docker info
+  resource_group: "$CI_COMMIT_REF_SLUG/$COPILOT_SERVICE"
+  script:
+    - sh -x ./gitlab/app-deploy.sh
+
+deploy-service-a:
+  extends: .app-deploy
+  only:
+    changes:
+      - service-a/**
+  variables:
+    COPILOT_SERVICE: service-a
+
+deploy-service-b:
+  extends: .app-deploy
+  only:
+    changes:
+      - service-b/**
+  variables:
+    COPILOT_SERVICE: service-b
+
+stop-env:
+  image: $BUILD_IMAGE
+  stage: env-init
+  when: manual
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+    action: stop
+  script:
+    - sh -x ./gitlab/env-stop.sh
