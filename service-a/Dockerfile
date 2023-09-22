@@ -1,5 +1,5 @@
 FROM nginx:latest
 
-RUN echo "hello world - service a11a" > /usr/share/nginx/html/index.html
+RUN echo "hello world - service a11aa" > /usr/share/nginx/html/index.html
 
 EXPOSE 80
