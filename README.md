@@ -1,12 +1,5 @@
-<<<<<<< HEAD
-## My Project
+# Building preview environments for your Amazon ECS applications using AWS Copilot
 
-TODO: Fill this README out!
-
-Be sure to:
-
-* Change the title in this README
-* Edit your repository description on GitHub
 
 ## Security
 
@@ -15,7 +8,3 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
-
-=======
-# aws-copilot-with-gitlab-2
->>>>>>> 99d8d06 (Initial commit)
