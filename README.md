@@ -1,4 +1,4 @@
-# Building preview environments for your Amazon ECS applications using AWS Copilot
+### Building preview environments for your Amazon ECS applications using AWS Copilot
 
 
 ## Security
