@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## My Project
 
 TODO: Fill this README out!
@@ -15,3 +16,6 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
 
+=======
+# aws-copilot-with-gitlab-2
+>>>>>>> 99d8d06 (Initial commit)
