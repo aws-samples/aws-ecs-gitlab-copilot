@@ -4,7 +4,7 @@ stages:
   - app-deploy
 
 variables:
-  BUILD_IMAGE: registry.gitlab.com/wlami/aws-copilot-with-gitlab-2/copilot-cli
+  BUILD_IMAGE: registry.gitlab.com/atalay1990/aws-ecs-gitlab-copilot
 
 env-init:
   image: $BUILD_IMAGE
