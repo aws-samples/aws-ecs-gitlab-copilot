@@ -1,70 +1,117 @@
+image: registry.gitlab.com/wlami/aws-copilot-with-gitlab-2/copilot-cli
+
 stages:
   - env-init
   - env-deploy
-  - app-deploy
+  - env-stop
+  - svc-deploy
 
-variables:
-  BUILD_IMAGE: registry.gitlab.com/atalay1990/aws-ecs-gitlab-copilot
-
-env-init:
-  image: $BUILD_IMAGE
-  stage: env-init
+# ----- Preview Env Deployment -----"
+.preview-envs:
   resource_group: "$CI_COMMIT_REF_SLUG"
   only:
     refs:
       - branches
+    variables:
+      - $CI_COMMIT_BRANCH =~ "/feature/"
   environment:
     name: $CI_COMMIT_REF_SLUG
-  script:
-    - ls -laR
-    - sh -x ./gitlab/env-init.sh
-  artifacts:
-    untracked: false
-    when: on_success
-    expire_in: "30 days"
-    paths:
-      - copilot/environments/$CI_COMMIT_REF_SLUG
+    on_stop: preview-env-stop
 
-env-deploy:
-  image: $BUILD_IMAGE
+preview-env-init:
+  extends: .preview-envs
+  stage: env-init
+  script:
+    - sh -x ./scripts/env-init.sh
+
+preview-env-deploy:
+  extends: .preview-envs
   stage: env-deploy
-  resource_group: "$CI_COMMIT_REF_SLUG"
-  dependencies:
-    - env-init
-  only:
-    refs:
-      - branches
   script:
-    - sh -x ./gitlab/env-deploy.sh
+    - sh -x ./scripts/env-deploy.sh
+
+preview-env-stop:
+  stage: env-stop
+  when: manual
+  resource_group: "$CI_COMMIT_REF_SLUG"
+  script:
+    - sh -x ./scripts/env-stop.sh
+  only:
+    refs:
+      - merge_requests
+    variables:
+      - $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  variables:
+    COPILOT_SERVICE_A: service-a
+    COPILOT_SERVICE_B: service-b
+  environment:
+    name: $CI_COMMIT_REF_SLUG
+    action: stop
 
 
-.app-deploy:
-  stage: app-deploy
-  image: $BUILD_IMAGE
+# ----- Dev Env Deployment -----"
+.dev-env:
+  resource_group: "dev"
   only:
     refs:
       - branches
+    variables:
+      - $CI_COMMIT_BRANCH =~ "main"
+  environment:
+    name: "dev"
+    on_stop: dev-env-stop
+
+dev-env-init:
+  extends: .dev-env
+  stage: env-init
+  script:
+    - sh -x ./scripts/env-init.sh
+
+dev-env-deploy:
+  extends: .dev-env
+  stage: env-deploy
+  script:
+    - sh -x ./scripts/env-deploy.sh
+
+
+# ----- Service Deployments -----"
+.svc-deploy:
+  stage: svc-deploy
   before_script:
     - docker info
-  resource_group: "$CI_COMMIT_REF_SLUG/$COPILOT_SERVICE"
   script:
-    - sh -x ./gitlab/app-deploy.sh
-  environment:
-    name: $CI_COMMIT_REF_SLUG-$COPILOT_SERVICE
-    url: https://$COPILOT_SERVICE.$CI_ENVIRONMENT_SLUG.$AWS_REGION.example.com
+    - sh -x ./scripts/svc-deploy.sh
 
 deploy_service-a:
-  extends: .app-deploy
+  extends: .svc-deploy
   only:
     changes:
-      - service-a/**
+      - service-a/*
+      - service-a/app/*
   variables:
     COPILOT_SERVICE: service-a
 
 deploy_service-b:
-  extends: .app-deploy
+  extends: .svc-deploy
   only:
     changes:
-      - service-b/**
+      - service-b/*
+      - service-b/app/*
   variables:
     COPILOT_SERVICE: service-b
+
+# --- Dev Env Stop ---
+dev-env-stop:
+  extends: .dev-env
+  stage: env-stop
+  resource_group: "dev"
+  when: manual
+  script:
+    - sh -x ./scripts/env-stop.sh
+  variables:
+    COPILOT_SERVICE_A: service-a
+    COPILOT_SERVICE_B: service-b
+  environment:
+    name: "dev"
+    action: stop
+
