@@ -1,9 +1,9 @@
 ### Building preview environments for your Amazon ECS applications using AWS Copilot
 
 ### Pre-requisites
-- aws-cli-v2
-- docker
-- aws copilot cli
+- aws-cli-v2 >= 2.13.5
+- docker >= 24.0.6
+- aws copilot cli >= v1.32.0
 
 ### Setup
 
